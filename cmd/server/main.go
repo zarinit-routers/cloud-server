@@ -80,8 +80,8 @@ func main() {
 
 				log.Info("Sending a message", "message", string(body))
 				err := ch.PublishWithContext(ctx,
-					requests.Name, // exchange
-					"",            // routing key
+					"",            // exchange
+					requests.Name, // routing key
 					false,         // mandatory
 					false,         // immediate
 					amqp.Publishing{
