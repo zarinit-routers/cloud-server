@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"sync"
 	"time"
 
@@ -86,11 +87,14 @@ func main() {
 					false,         // mandatory
 					false,         // immediate
 					amqp.Publishing{
-						ContentType:   "text/plain",
+						ContentType:   "application/json",
 						Body:          body,
 						CorrelationId: uuid.New().String(),
 					},
 				)
+				if conn.IsClosed() {
+					failOnError(fmt.Errorf("connection is closed"), "Failed publishing a message")
+				}
 				failOnError(err, "Failed publishing a message")
 			}()
 			time.Sleep(10 * time.Second)
