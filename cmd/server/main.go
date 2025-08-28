@@ -28,7 +28,7 @@ func main() {
 
 	requests, err := ch.QueueDeclare(
 		"requests", // name
-		true,       // durable
+		false,      // durable
 		false,      // delete when unused
 		false,      // exclusive
 		false,      // no-wait
