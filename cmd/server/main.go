@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"sync"
 	"time"
 
 	"github.com/charmbracelet/log"
@@ -41,7 +42,10 @@ func main() {
 		false,       // no-wait
 		nil,         // arguments
 	)
+	wg := sync.WaitGroup{}
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		messages, _ := ch.Consume(
 			responses.Name, // queue
 			"",             // consumer
@@ -58,25 +62,29 @@ func main() {
 		}
 	}()
 
-	for {
+	go func() {
+		defer wg.Done()
+		for {
 
-		obj := map[string]any{
-			"command": "v1/timezone/get",
-			"nodeId":  "00000000-0000-0000-0000-000000000000",
+			obj := map[string]any{
+				"command": "v1/timezone/get",
+				"nodeId":  "00000000-0000-0000-0000-000000000000",
+			}
+			body, _ := json.Marshal(obj)
+
+			ch.Publish(
+				requests.Name, // exchange
+				"",            // routing key
+				false,         // mandatory
+				false,         // immediate
+				amqp.Publishing{
+					ContentType:   "text/plain",
+					Body:          body,
+					CorrelationId: uuid.New().String(),
+				},
+			)
+			time.Sleep(5 * time.Second)
 		}
-		body, _ := json.Marshal(obj)
-
-		ch.Publish(
-			requests.Name, // exchange
-			"",            // routing key
-			false,         // mandatory
-			false,         // immediate
-			amqp.Publishing{
-				ContentType:   "text/plain",
-				Body:          body,
-				CorrelationId: uuid.New().String(),
-			},
-		)
-		time.Sleep(5 * time.Second)
-	}
+	}()
+	wg.Wait()
 }
