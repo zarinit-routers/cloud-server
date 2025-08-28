@@ -9,4 +9,4 @@ RUN go build -o srv cmd/server/main.go
 
 EXPOSE 8080
 
-CMD ["/app/srv"]
+CMD ["/srv"]
