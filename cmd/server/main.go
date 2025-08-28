@@ -27,11 +27,9 @@ func main() {
 		conn = connection
 	}
 	log.Info("Connected to RabbitMQ")
-	defer conn.Close()
 	ch, err := conn.Channel()
-	if err != nil {
-		log.Fatal("Failed to open a channel", "error", err)
-	}
+	failOnError(err, "Failed to open a channel")
+
 	requests, err := ch.QueueDeclare(
 		"requests", // name
 		false,      // durable
