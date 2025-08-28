@@ -14,6 +14,12 @@ var (
 	conn *amqp.Connection
 )
 
+func failOnError(err error, msg string) {
+	if err != nil {
+		log.Fatal(msg, "error", err)
+	}
+}
+
 func main() {
 	if connection, err := amqp.Dial("amqp://guest:guest@rabbit-mq:5672/"); err != nil {
 		log.Fatal("Failed to connect to RabbitMQ", "error", err)
@@ -26,7 +32,7 @@ func main() {
 	if err != nil {
 		log.Fatal("Failed to open a channel", "error", err)
 	}
-	requests, _ := ch.QueueDeclare(
+	requests, err := ch.QueueDeclare(
 		"requests", // name
 		false,      // durable
 		false,      // delete when unused
@@ -34,7 +40,8 @@ func main() {
 		false,      // no-wait
 		nil,        // arguments
 	)
-	responses, _ := ch.QueueDeclare(
+	failOnError(err, "Failed to declare a queue")
+	responses, err := ch.QueueDeclare(
 		"responses", // name
 		false,       // durable
 		false,       // delete when unused
@@ -42,11 +49,12 @@ func main() {
 		false,       // no-wait
 		nil,         // arguments
 	)
+	failOnError(err, "Failed to declare a queue")
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		messages, _ := ch.Consume(
+		messages, err := ch.Consume(
 			responses.Name, // queue
 			"",             // consumer
 			true,           // auto-ack
@@ -55,6 +63,7 @@ func main() {
 			false,          // no-wait
 			nil,            // args
 		)
+		failOnError(err, "Failed to consume messages")
 		for msg := range messages {
 			log.Info("Received a message", "message", string(msg.Body), "requestId", msg.CorrelationId)
 			msg.Ack(false)
@@ -72,7 +81,7 @@ func main() {
 			}
 			body, _ := json.Marshal(obj)
 
-			ch.Publish(
+			err := ch.Publish(
 				requests.Name, // exchange
 				"",            // routing key
 				false,         // mandatory
@@ -83,6 +92,7 @@ func main() {
 					CorrelationId: uuid.New().String(),
 				},
 			)
+			failOnError(err, "Failed publishing a message")
 			time.Sleep(5 * time.Second)
 		}
 	}()
