@@ -10,10 +10,6 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-var (
-	conn *amqp.Connection
-)
-
 func failOnError(err error, msg string) {
 	if err != nil {
 		log.Fatal(msg, "error", err)
@@ -21,11 +17,9 @@ func failOnError(err error, msg string) {
 }
 
 func main() {
-	if connection, err := amqp.Dial("amqp://guest:guest@rabbit-mq:5672/"); err != nil {
-		log.Fatal("Failed to connect to RabbitMQ", "error", err)
-	} else {
-		conn = connection
-	}
+	conn, err := amqp.Dial("amqp://guest:guest@rabbit-mq:5672/")
+	failOnError(err, "Failed to connect to RabbitMQ")
+
 	log.Info("Connected to RabbitMQ")
 	ch, err := conn.Channel()
 	failOnError(err, "Failed to open a channel")
