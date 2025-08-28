@@ -71,6 +71,7 @@ func main() {
 		}
 	}()
 
+	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		for {
@@ -81,6 +82,7 @@ func main() {
 			}
 			body, _ := json.Marshal(obj)
 
+			log.Info("Sending a message", "message", string(body))
 			err := ch.Publish(
 				requests.Name, // exchange
 				"",            // routing key
