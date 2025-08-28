@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"sync"
 	"time"
@@ -67,27 +68,32 @@ func main() {
 	go func() {
 		defer wg.Done()
 		for {
+			go func() {
 
-			obj := map[string]any{
-				"command": "v1/timezone/get",
-				"nodeId":  "00000000-0000-0000-0000-000000000000",
-			}
-			body, _ := json.Marshal(obj)
+				obj := map[string]any{
+					"command": "v1/timezone/get",
+					"nodeId":  "00000000-0000-0000-0000-000000000000",
+				}
+				body, _ := json.Marshal(obj)
 
-			log.Info("Sending a message", "message", string(body))
-			err := ch.Publish(
-				requests.Name, // exchange
-				"",            // routing key
-				false,         // mandatory
-				false,         // immediate
-				amqp.Publishing{
-					ContentType:   "text/plain",
-					Body:          body,
-					CorrelationId: uuid.New().String(),
-				},
-			)
-			failOnError(err, "Failed publishing a message")
-			time.Sleep(5 * time.Second)
+				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+				defer cancel()
+
+				log.Info("Sending a message", "message", string(body))
+				err := ch.PublishWithContext(ctx,
+					requests.Name, // exchange
+					"",            // routing key
+					false,         // mandatory
+					false,         // immediate
+					amqp.Publishing{
+						ContentType:   "text/plain",
+						Body:          body,
+						CorrelationId: uuid.New().String(),
+					},
+				)
+				failOnError(err, "Failed publishing a message")
+			}()
+			time.Sleep(10 * time.Second)
 		}
 	}()
 	wg.Wait()
