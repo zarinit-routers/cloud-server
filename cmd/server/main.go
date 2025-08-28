@@ -28,7 +28,7 @@ func main() {
 
 	requests, err := ch.QueueDeclare(
 		"requests", // name
-		false,      // durable
+		true,       // durable
 		false,      // delete when unused
 		false,      // exclusive
 		false,      // no-wait
@@ -60,8 +60,6 @@ func main() {
 		failOnError(err, "Failed to consume messages")
 		for msg := range messages {
 			log.Info("Received a message", "message", string(msg.Body), "requestId", msg.CorrelationId)
-			msg.Ack(false)
-			log.Info("Acknowledged message")
 		}
 	}()
 
