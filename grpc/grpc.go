@@ -6,6 +6,7 @@ import (
 
 	"github.com/zarinit-routers/connector-rpc/gen/connector"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 const ENV_GRPC_ADDR = "CONNECTOR_GRPC_ADDR"
@@ -20,6 +21,7 @@ func getClientsRpcAddr() string {
 
 func Setup() error {
 	var opts []grpc.DialOption
+	opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	conn, err := grpc.NewClient(getClientsRpcAddr(), opts...)
 	if err != nil {
 		return err
