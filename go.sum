@@ -97,6 +97,8 @@ github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e h1:JVG44RsyaB9T2KIHavM
 github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e/go.mod h1:RbqR21r5mrJuqunuUZ/Dhy/avygyECGrLceyNeo4LiM=
 github.com/zarinit-routers/connector-rpc v0.0.4 h1:1Br7poJpmBSYpddujgZ7jWBXDoAMgx88adgecZoiUvo=
 github.com/zarinit-routers/connector-rpc v0.0.4/go.mod h1:FnopZpxhvTn1ZCpPiAHjyZSxiJqJsedxDGgLUx70iZ4=
+github.com/zarinit-routers/connector-rpc v0.0.7 h1:+Yazkwt1eH9dYaEa/+VUUdx+uBcoreSgI1VdWYQUkd8=
+github.com/zarinit-routers/connector-rpc v0.0.7/go.mod h1:FnopZpxhvTn1ZCpPiAHjyZSxiJqJsedxDGgLUx70iZ4=
 go.uber.org/goleak v1.3.0 h1:2K3zAYmnTNqV73imy9J1T3WC+gmCePx2hEGkimedGto=
 go.uber.org/goleak v1.3.0/go.mod h1:CoHD4mav9JJNrW/WLlf7HGZPjdw8EucARQHekz1X6bE=
 golang.org/x/arch v0.0.0-20210923205945-b76863e36670/go.mod h1:5om86z9Hs0C8fWVUuoMHwpExlXzs5Tkyp9hOrfG7pp8=

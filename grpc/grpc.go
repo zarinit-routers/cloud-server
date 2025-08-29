@@ -26,10 +26,10 @@ func Setup() error {
 	if err != nil {
 		return err
 	}
-	ClientsService = connector.NewClientsServiceClient(conn)
+	NodesService = connector.NewNodesClient(conn)
 	return nil
 }
 
 var (
-	ClientsService connector.ClientsServiceClient
+	NodesService connector.NodesClient
 )

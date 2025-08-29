@@ -15,7 +15,9 @@ func GetClients() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
-		response, err := grpc.ClientsService.GetClient(ctx, &connector.GetClientsRequest{})
+		response, err := grpc.NodesService.NodesByGroup(ctx, &connector.NodesByGroupRequest{
+			GroupId: "dummy-id",
+		})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
