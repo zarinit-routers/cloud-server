@@ -1,9 +1,9 @@
 package grpc
 
 import (
-	"log"
 	"os"
 
+	"github.com/charmbracelet/log"
 	"github.com/zarinit-routers/connector-rpc/gen/connector"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
