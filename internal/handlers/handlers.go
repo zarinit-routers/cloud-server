@@ -30,5 +30,5 @@ func GetClients() gin.HandlerFunc {
 }
 
 func dummyId() string {
-	return "00000000-0000-0000-0000-00000000000"
+	return "00000000-0000-0000-0000-000000000000"
 }
