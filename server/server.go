@@ -33,6 +33,5 @@ func getAddr() string {
 }
 
 func setupRoutes(r *gin.RouterGroup) {
-	r.GET("/clients", handlers.GetClients())
 	handlers.SetupNodeCommands(r.Group("/cmd"))
 }
