@@ -95,6 +95,8 @@ github.com/ugorji/go/codec v1.2.12 h1:9LC83zGrHhuUA9l16C9AHXAqEV/2wBQ4nkvumAE65E
 github.com/ugorji/go/codec v1.2.12/go.mod h1:UNopzCgEMSXjBc6AOMqYvWC1ktqTAfzJZUZgYf6w6lg=
 github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e h1:JVG44RsyaB9T2KIHavMF/ppJZNG9ZpyihvCd0w101no=
 github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e/go.mod h1:RbqR21r5mrJuqunuUZ/Dhy/avygyECGrLceyNeo4LiM=
+github.com/zarinit-routers/commands v0.0.2 h1:026PeoNgrTEQh2UX+vUC+BxzbN+9kHIPrWsjBkOE6fY=
+github.com/zarinit-routers/commands v0.0.2/go.mod h1:khV2ZIiVRrkgjFX5ns2Q8Mw4H+xmq5QYdTr2ZWKCeyU=
 github.com/zarinit-routers/connector-rpc v0.0.4 h1:1Br7poJpmBSYpddujgZ7jWBXDoAMgx88adgecZoiUvo=
 github.com/zarinit-routers/connector-rpc v0.0.4/go.mod h1:FnopZpxhvTn1ZCpPiAHjyZSxiJqJsedxDGgLUx70iZ4=
 github.com/zarinit-routers/connector-rpc v0.0.7 h1:+Yazkwt1eH9dYaEa/+VUUdx+uBcoreSgI1VdWYQUkd8=

@@ -7,11 +7,12 @@ import (
 	"github.com/charmbracelet/log"
 	"github.com/gin-gonic/gin"
 	"github.com/zarinit-routers/cloud-server/queue"
+	cmd "github.com/zarinit-routers/commands"
 )
 
 var commands = []string{
-	"v1/timezone/get",
-	"v1/timezone/set",
+	cmd.CommandTimezoneGet.String(),
+	cmd.CommandTimezoneSet.String(),
 }
 
 func SetupNodeCommands(r *gin.RouterGroup) {

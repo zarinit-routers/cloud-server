@@ -21,7 +21,7 @@ func (s *Server) Start() error {
 func New() *Server {
 	engine := gin.Default()
 
-	setupRoutes(engine.Group("/api"))
+	handlers.SetupNodeCommands(engine.Group("/api/cmd"))
 
 	return &Server{
 		engine: engine,
@@ -33,5 +33,4 @@ func getAddr() string {
 }
 
 func setupRoutes(r *gin.RouterGroup) {
-	handlers.SetupNodeCommands(r.Group("/cmd"))
 }
