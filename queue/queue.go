@@ -21,7 +21,6 @@ func getRabbitMQUrl() (string, error) {
 
 var (
 	Connection *amqp.Connection
-	Channel    *amqp.Channel
 )
 
 const (
@@ -46,7 +45,6 @@ func Setup() error {
 	if err != nil {
 		return err
 	}
-	Channel = ch
 
 	_, err = ch.QueueDeclare(
 		requestsQueue, // name
@@ -73,6 +71,37 @@ func Setup() error {
 	return nil
 }
 
+func getChannel() (*amqp.Channel, error) {
+	ch, err := Connection.Channel()
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = ch.QueueDeclare(
+		requestsQueue, // name
+		false,         // durable
+		false,         // delete when unused
+		false,         // exclusive
+		false,         // no-wait
+		nil,           // arguments
+	)
+	if err != nil {
+		return nil, err
+	}
+	_, err = ch.QueueDeclare(
+		responsesQueue, // name
+		false,          // durable
+		false,          // delete when unused
+		false,          // exclusive
+		false,          // no-wait
+		nil,            // arguments
+	)
+	if err != nil {
+		return nil, err
+	}
+	return ch, err
+}
+
 type JSONMap = map[string]any
 
 type Request struct {
@@ -96,13 +125,18 @@ func SendRequest(r *Request) (*Response, error) {
 
 	ctx := context.Background()
 
+	ch, err := getChannel()
+	if err != nil {
+		return nil, fmt.Errorf("failed create new channel: %s", err)
+	}
+
 	prefetchCount := 2000
-	Channel.Qos(prefetchCount, 0, false)
+	ch.Qos(prefetchCount, 0, false)
 
 	requestId := uuid.New().String()
 
 	log.Info("Sending a message", "message", string(body), "requestId", requestId)
-	err = Channel.PublishWithContext(ctx,
+	err = ch.PublishWithContext(ctx,
 		"",            // exchange
 		requestsQueue, // routing key
 		false,         // mandatory
@@ -114,7 +148,7 @@ func SendRequest(r *Request) (*Response, error) {
 		},
 	)
 
-	messages, err := Channel.Consume(
+	messages, err := ch.Consume(
 		responsesQueue, // queue
 		"",             // consumer
 		false,          // auto-ack
