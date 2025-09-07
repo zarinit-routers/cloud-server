@@ -96,20 +96,10 @@ func SendRequest(r *Request) (*Response, error) {
 
 	ctx := context.Background()
 
-	requestId := uuid.New().String()
+	prefetchCount := 2
+	Channel.Qos(prefetchCount, 0, false)
 
-	messages, err := Channel.Consume(
-		responsesQueue, // queue
-		"",             // consumer
-		false,          // auto-ack
-		false,          // exclusive
-		false,          // no-local
-		false,          // no-wait
-		nil,            // args
-	)
-	if err != nil {
-		return nil, err
-	}
+	requestId := uuid.New().String()
 
 	log.Info("Sending a message", "message", string(body), "requestId", requestId)
 	err = Channel.PublishWithContext(ctx,
@@ -123,6 +113,19 @@ func SendRequest(r *Request) (*Response, error) {
 			CorrelationId: requestId,
 		},
 	)
+
+	messages, err := Channel.Consume(
+		responsesQueue, // queue
+		"",             // consumer
+		false,          // auto-ack
+		false,          // exclusive
+		false,          // no-local
+		false,          // no-wait
+		nil,            // args
+	)
+	if err != nil {
+		return nil, err
+	}
 
 	log.Info("Awaiting response", "requestId", requestId)
 	for msg := range messages {
