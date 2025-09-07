@@ -172,6 +172,7 @@ func SendRequest(r *Request) (*Response, error) {
 				return
 			}
 			awaitResponse = &response
+			return
 		}
 
 	}()
