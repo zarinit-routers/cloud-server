@@ -98,19 +98,6 @@ func SendRequest(r *Request) (*Response, error) {
 
 	requestId := uuid.New().String()
 
-	log.Info("Sending a message", "message", string(body), "requestId", requestId)
-	err = Channel.PublishWithContext(ctx,
-		"",            // exchange
-		requestsQueue, // routing key
-		false,         // mandatory
-		false,         // immediate
-		amqp.Publishing{
-			ContentType:   "application/json",
-			Body:          body,
-			CorrelationId: requestId,
-		},
-	)
-
 	messages, err := Channel.Consume(
 		responsesQueue, // queue
 		"",             // consumer
@@ -123,6 +110,19 @@ func SendRequest(r *Request) (*Response, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	log.Info("Sending a message", "message", string(body), "requestId", requestId)
+	err = Channel.PublishWithContext(ctx,
+		"",            // exchange
+		requestsQueue, // routing key
+		false,         // mandatory
+		false,         // immediate
+		amqp.Publishing{
+			ContentType:   "application/json",
+			Body:          body,
+			CorrelationId: requestId,
+		},
+	)
 
 	log.Info("Awaiting response", "requestId", requestId)
 	for msg := range messages {
