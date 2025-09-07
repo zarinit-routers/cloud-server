@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/charmbracelet/log"
 	"github.com/google/uuid"
@@ -95,12 +94,11 @@ func SendRequest(r *Request) (*Response, error) {
 		return nil, err
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), getRequestTimeout())
-	defer cancel()
+	ctx := context.Background()
 
 	requestId := uuid.New().String()
 
-	log.Info("Sending a message", "message", string(body))
+	log.Info("Sending a message", "message", string(body), "requestId", requestId)
 	err = Channel.PublishWithContext(ctx,
 		"",            // exchange
 		requestsQueue, // routing key
@@ -126,22 +124,22 @@ func SendRequest(r *Request) (*Response, error) {
 		return nil, err
 	}
 
+	log.Info("Awaiting response", "requestId", requestId)
 	for msg := range messages {
-		if msg.CorrelationId == requestId {
-			msg.Ack(false)
-
-			var response Response
-			err := json.Unmarshal(msg.Body, &response)
-			if err != nil {
-				return nil, err
-			}
-			return &response, nil
+		if msg.CorrelationId != requestId {
+			continue
 		}
+		log.Info("Received message", "requestId", requestId)
+
+		msg.Ack(false)
+
+		var response Response
+		err := json.Unmarshal(msg.Body, &response)
+		if err != nil {
+			return nil, err
+		}
+		return &response, nil
 	}
 
 	return nil, fmt.Errorf("something went wrong")
-}
-
-func getRequestTimeout() time.Duration {
-	return 20 * time.Second
 }

@@ -23,6 +23,7 @@ func SetupNodeCommands(r *gin.RouterGroup) {
 			var req queue.Request
 
 			if err := c.ShouldBindJSON(&req); err != nil {
+				log.Error("Failed bind request body", "error", err)
 				c.JSON(http.StatusBadRequest, ResponseErr(err))
 				return
 			}
@@ -31,6 +32,7 @@ func SetupNodeCommands(r *gin.RouterGroup) {
 
 			response, err := queue.SendRequest(&req)
 			if err != nil {
+				log.Error("Failed send/get request", "error", err)
 				c.JSON(http.StatusInternalServerError, ResponseErr(err))
 				return
 			}
