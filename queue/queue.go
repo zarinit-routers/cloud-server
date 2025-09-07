@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sync"
 
 	"github.com/charmbracelet/log"
 	"github.com/google/uuid"
@@ -123,30 +124,18 @@ func SendRequest(r *Request) (*Response, error) {
 		return nil, err
 	}
 
-	ctx := context.Background()
+	ctx := context.TODO()
 
 	ch, err := getChannel()
 	if err != nil {
 		return nil, fmt.Errorf("failed create new channel: %s", err)
 	}
+	defer ch.Close()
 
 	prefetchCount := 2000
 	ch.Qos(prefetchCount, 0, false)
 
 	requestId := uuid.New().String()
-
-	log.Info("Sending a message", "message", string(body), "requestId", requestId)
-	err = ch.PublishWithContext(ctx,
-		"",            // exchange
-		requestsQueue, // routing key
-		false,         // mandatory
-		false,         // immediate
-		amqp.Publishing{
-			ContentType:   "application/json",
-			Body:          body,
-			CorrelationId: requestId,
-		},
-	)
 
 	messages, err := ch.Consume(
 		responsesQueue, // queue
@@ -161,23 +150,47 @@ func SendRequest(r *Request) (*Response, error) {
 		return nil, err
 	}
 
+	wg := sync.WaitGroup{}
+	var awaitResponse *Response
+	var awaitErr error
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for msg := range messages {
+			log.Info("Range message", "body", string(msg.Body))
+			if msg.CorrelationId != requestId {
+				continue
+			}
+			log.Info("Received message", "requestId", requestId)
+
+			msg.Ack(false)
+
+			var response Response
+			err := json.Unmarshal(msg.Body, &response)
+			if err != nil {
+				awaitErr = err
+				return
+			}
+			awaitResponse = &response
+		}
+
+	}()
+
+	log.Info("Sending a message", "message", string(body), "requestId", requestId)
+	err = ch.PublishWithContext(ctx,
+		"",            // exchange
+		requestsQueue, // routing key
+		false,         // mandatory
+		false,         // immediate
+		amqp.Publishing{
+			ContentType:   "application/json",
+			Body:          body,
+			CorrelationId: requestId,
+		},
+	)
+
 	log.Info("Awaiting response", "requestId", requestId)
-	for msg := range messages {
-		log.Info("Range message", "body", string(msg.Body))
-		if msg.CorrelationId != requestId {
-			continue
-		}
-		log.Info("Received message", "requestId", requestId)
+	wg.Wait()
 
-		msg.Ack(false)
-
-		var response Response
-		err := json.Unmarshal(msg.Body, &response)
-		if err != nil {
-			return nil, err
-		}
-		return &response, nil
-	}
-
-	return nil, fmt.Errorf("something went wrong")
+	return awaitResponse, awaitErr
 }
