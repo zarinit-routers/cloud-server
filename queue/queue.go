@@ -96,7 +96,7 @@ func SendRequest(r *Request) (*Response, error) {
 
 	ctx := context.Background()
 
-	prefetchCount := 2
+	prefetchCount := 2000
 	Channel.Qos(prefetchCount, 0, false)
 
 	requestId := uuid.New().String()
