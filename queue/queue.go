@@ -126,6 +126,7 @@ func SendRequest(r *Request) (*Response, error) {
 
 	log.Info("Awaiting response", "requestId", requestId)
 	for msg := range messages {
+		log.Info("Range message", "body", string(msg.Body))
 		if msg.CorrelationId != requestId {
 			continue
 		}
