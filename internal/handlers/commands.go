@@ -12,15 +12,6 @@ import (
 func SetupNodeCommands(r *gin.RouterGroup) {
 
 	r.POST("/:cmd", func(c *gin.Context) {
-		var uriData struct {
-			Cmd string `uri:"cmd" binding:"required"`
-		}
-		if err := c.ShouldBindUri(&uriData); err != nil {
-			log.Error("Failed bind request uri", "error", err)
-			c.JSON(http.StatusBadRequest, ResponseErr(err))
-			return
-
-		}
 		var req queue.Request
 
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -29,7 +20,16 @@ func SetupNodeCommands(r *gin.RouterGroup) {
 			return
 		}
 
-		req.Command = uriData.Cmd
+		if req.Command == "" {
+			log.Error("No command specified")
+			c.JSON(http.StatusBadRequest, ResponseErr(fmt.Errorf("No command specified")))
+			return
+		}
+		if req.NodeId == "" {
+			log.Error("No node ID specified")
+			c.JSON(http.StatusBadRequest, ResponseErr(fmt.Errorf("No node ID specified")))
+			return
+		}
 
 		response, err := queue.SendRequest(&req)
 		if err != nil {
