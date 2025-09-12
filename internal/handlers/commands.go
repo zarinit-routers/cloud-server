@@ -11,7 +11,7 @@ import (
 
 func SetupNodeCommands(r *gin.RouterGroup) {
 
-	r.POST("/:cmd", func(c *gin.Context) {
+	r.POST("/", func(c *gin.Context) {
 		var req queue.Request
 
 		if err := c.ShouldBindJSON(&req); err != nil {
