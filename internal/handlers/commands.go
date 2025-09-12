@@ -7,39 +7,39 @@ import (
 	"github.com/charmbracelet/log"
 	"github.com/gin-gonic/gin"
 	"github.com/zarinit-routers/cloud-server/queue"
-	cmd "github.com/zarinit-routers/commands"
 )
-
-var commands = []string{
-	cmd.CommandTimezoneGet.String(),
-	cmd.CommandTimezoneSet.String(),
-}
 
 func SetupNodeCommands(r *gin.RouterGroup) {
 
-	for _, cmd := range commands {
-		r.POST("/"+cmd, func(c *gin.Context) {
+	r.POST("/:cmd", func(c *gin.Context) {
+		var uriData struct {
+			Cmd string `uri:"cmd" binding:"required"`
+		}
+		if err := c.ShouldBindUri(&uriData); err != nil {
+			log.Error("Failed bind request uri", "error", err)
+			c.JSON(http.StatusBadRequest, ResponseErr(err))
+			return
 
-			var req queue.Request
+		}
+		var req queue.Request
 
-			if err := c.ShouldBindJSON(&req); err != nil {
-				log.Error("Failed bind request body", "error", err)
-				c.JSON(http.StatusBadRequest, ResponseErr(err))
-				return
-			}
+		if err := c.ShouldBindJSON(&req); err != nil {
+			log.Error("Failed bind request body", "error", err)
+			c.JSON(http.StatusBadRequest, ResponseErr(err))
+			return
+		}
 
-			req.Command = cmd
+		req.Command = uriData.Cmd
 
-			response, err := queue.SendRequest(&req)
-			if err != nil {
-				log.Error("Failed send/get request", "error", err)
-				c.JSON(http.StatusInternalServerError, ResponseErr(err))
-				return
-			}
+		response, err := queue.SendRequest(&req)
+		if err != nil {
+			log.Error("Failed send/get request", "error", err)
+			c.JSON(http.StatusInternalServerError, ResponseErr(err))
+			return
+		}
 
-			c.JSON(http.StatusOK, response)
-		})
-	}
+		c.JSON(http.StatusOK, response)
+	})
 }
 
 func ResponseErr(err error) queue.Response {
