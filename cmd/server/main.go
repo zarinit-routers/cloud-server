@@ -4,7 +4,6 @@ import (
 	"sync"
 
 	"github.com/charmbracelet/log"
-	"github.com/zarinit-routers/cloud-server/queue"
 	"github.com/zarinit-routers/cloud-server/server"
 )
 
@@ -15,8 +14,6 @@ func failOnError(err error, msg string) {
 }
 
 func main() {
-
-	failOnError(queue.Setup(), "Failed to setup RabbitMQ connection")
 
 	wg := sync.WaitGroup{}
 	wg.Add(1)

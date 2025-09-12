@@ -20,60 +20,39 @@ func getRabbitMQUrl() (string, error) {
 	return url, nil
 }
 
-var (
-	Connection *amqp.Connection
-)
-
 const (
 	requestsQueue  = "requests"
 	responsesQueue = "responses"
 )
 
-func Setup() error {
+func connect() (*amqp.Connection, error) {
 	url, err := getRabbitMQUrl()
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("failed to get RabbitMQ URL: %w", err)
 	}
 	conn, err := amqp.Dial(url)
 	if err != nil {
-		return err
+		url, err := getRabbitMQUrl()
+		if err != nil {
+			return nil, err
+		}
+		return nil, fmt.Errorf("failed dial to %q: %w", url, err)
 	}
-
-	Connection = conn
-
 	log.Info("Connected to RabbitMQ")
-	ch, err := conn.Channel()
-	if err != nil {
-		return err
-	}
 
-	_, err = ch.QueueDeclare(
-		requestsQueue, // name
-		false,         // durable
-		false,         // delete when unused
-		false,         // exclusive
-		false,         // no-wait
-		nil,           // arguments
-	)
-	if err != nil {
-		return err
-	}
-	_, err = ch.QueueDeclare(
-		responsesQueue, // name
-		false,          // durable
-		false,          // delete when unused
-		false,          // exclusive
-		false,          // no-wait
-		nil,            // arguments
-	)
-	if err != nil {
-		return err
-	}
-	return nil
+	return conn, nil
+}
+
+func getConnection() (*amqp.Connection, error) {
+	return connect()
 }
 
 func getChannel() (*amqp.Channel, error) {
-	ch, err := Connection.Channel()
+	conn, err := getConnection()
+	if err != nil {
+		return nil, err
+	}
+	ch, err := conn.Channel()
 	if err != nil {
 		return nil, err
 	}
