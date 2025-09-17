@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"sync"
 
 	"github.com/charmbracelet/log"
 	"github.com/google/uuid"
@@ -129,33 +128,6 @@ func SendRequest(r *Request) (*Response, error) {
 		return nil, err
 	}
 
-	wg := sync.WaitGroup{}
-	var awaitResponse *Response
-	var awaitErr error
-	wg.Add(1)
-	go func(id *string) {
-		defer wg.Done()
-		for msg := range messages {
-			log.Info("Range message", "requestId", *id, "correlationId", msg.CorrelationId, "message", string(msg.Body))
-			if msg.CorrelationId != *id {
-				continue
-			}
-			log.Info("Received message", "requestId", *id, "correlationId", msg.CorrelationId)
-
-			msg.Ack(false)
-
-			var response Response
-			err := json.Unmarshal(msg.Body, &response)
-			if err != nil {
-				awaitErr = err
-				return
-			}
-			awaitResponse = &response
-			return
-		}
-
-	}(&requestId)
-
 	log.Info("Sending a message", "message", string(body), "requestId", requestId)
 	err = ch.PublishWithContext(ctx,
 		"",            // exchange
@@ -173,7 +145,22 @@ func SendRequest(r *Request) (*Response, error) {
 	}
 
 	log.Info("Awaiting response", "requestId", requestId)
-	wg.Wait()
 
-	return awaitResponse, awaitErr
+	select {
+	case msg := <-messages:
+		log.Info("Received message", "requestId", requestId, "correlationId", msg.CorrelationId)
+		if msg.CorrelationId != requestId {
+			msg.Nack(false, true)
+			return nil, fmt.Errorf("correlation id does not match")
+		}
+		msg.Ack(false)
+		var response Response
+		err := json.Unmarshal(msg.Body, &response)
+		if err != nil {
+			return nil, fmt.Errorf("failed parse response body: %s", err)
+		}
+		return &response, nil
+	case <-ctx.Done():
+		return nil, fmt.Errorf("timeout reached: %s", ctx.Err())
+	}
 }
