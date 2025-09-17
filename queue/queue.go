@@ -111,8 +111,8 @@ func SendRequest(r *Request) (*Response, error) {
 	}
 	defer ch.Close()
 
-	prefetchCount := 2000
-	ch.Qos(prefetchCount, 0, false)
+	// prefetchCount := 2000
+	// ch.Qos(prefetchCount, 0, false)
 
 	requestId := uuid.New().String()
 
