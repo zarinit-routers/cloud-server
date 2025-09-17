@@ -133,14 +133,14 @@ func SendRequest(r *Request) (*Response, error) {
 	var awaitResponse *Response
 	var awaitErr error
 	wg.Add(1)
-	go func() {
+	go func(id *string) {
 		defer wg.Done()
 		for msg := range messages {
-			log.Info("Range message", "body", string(msg.Body), "requestId", requestId, "correlationId", msg.CorrelationId, "message", msg.Body, "requestId", requestId, "correlationId", msg.CorrelationId)
-			if msg.CorrelationId != requestId {
+			log.Info("Range message", "body", string(msg.Body), "requestId", id, "correlationId", msg.CorrelationId, "message", msg.Body, "requestId", id, "correlationId", msg.CorrelationId)
+			if msg.CorrelationId != *id {
 				continue
 			}
-			log.Info("Received message", "requestId", requestId)
+			log.Info("Received message", "requestId", id, "correlationId", msg.CorrelationId)
 
 			msg.Ack(false)
 
@@ -154,7 +154,7 @@ func SendRequest(r *Request) (*Response, error) {
 			return
 		}
 
-	}()
+	}(&requestId)
 
 	log.Info("Sending a message", "message", string(body), "requestId", requestId)
 	err = ch.PublishWithContext(ctx,
