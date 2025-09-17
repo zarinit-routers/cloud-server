@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/charmbracelet/log"
 	"github.com/google/uuid"
@@ -166,9 +167,9 @@ func await(messages <-chan amqp.Delivery, requestId string, ctx context.Context)
 			}
 			return &response, nil
 		case <-ctx.Done():
+			return nil, fmt.Errorf("context timeout reached")
+		case <-time.After(time.Minute):
 			return nil, fmt.Errorf("timeout reached")
-		default:
-			log.Warn("No data")
 		}
 	}
 }
