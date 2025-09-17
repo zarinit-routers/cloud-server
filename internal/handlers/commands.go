@@ -22,12 +22,12 @@ func SetupNodeCommands(r *gin.RouterGroup) {
 
 		if req.Command == "" {
 			log.Error("No command specified")
-			c.JSON(http.StatusBadRequest, ResponseErr(fmt.Errorf("No command specified")))
+			c.JSON(http.StatusBadRequest, ResponseErr(fmt.Errorf("no command specified")))
 			return
 		}
 		if req.NodeId == "" {
 			log.Error("No node ID specified")
-			c.JSON(http.StatusBadRequest, ResponseErr(fmt.Errorf("No node ID specified")))
+			c.JSON(http.StatusBadRequest, ResponseErr(fmt.Errorf("no node ID specified")))
 			return
 		}
 
@@ -47,5 +47,4 @@ func ResponseErr(err error) queue.Response {
 	return queue.Response{
 		RequestError: fmt.Sprintf("pre-command error: bad request %s", err),
 	}
-
 }

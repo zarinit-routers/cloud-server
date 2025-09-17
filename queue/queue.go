@@ -136,7 +136,7 @@ func SendRequest(r *Request) (*Response, error) {
 	go func() {
 		defer wg.Done()
 		for msg := range messages {
-			log.Info("Range message", "body", string(msg.Body))
+			log.Info("Range message", "body", string(msg.Body), "requestId", requestId, "correlationId", msg.CorrelationId, "message", msg.Body, "requestId", requestId, "correlationId", msg.CorrelationId)
 			if msg.CorrelationId != requestId {
 				continue
 			}
@@ -168,6 +168,9 @@ func SendRequest(r *Request) (*Response, error) {
 			CorrelationId: requestId,
 		},
 	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to publish a message: %s", err)
+	}
 
 	log.Info("Awaiting response", "requestId", requestId)
 	wg.Wait()
