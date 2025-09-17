@@ -144,23 +144,31 @@ func SendRequest(r *Request) (*Response, error) {
 		return nil, fmt.Errorf("failed to publish a message: %s", err)
 	}
 
-	log.Info("Awaiting response", "requestId", requestId)
+	return await(messages, requestId, ctx)
+}
 
-	select {
-	case msg := <-messages:
-		log.Info("Received message", "requestId", requestId, "correlationId", msg.CorrelationId)
-		if msg.CorrelationId != requestId {
-			msg.Nack(false, true)
-			return nil, fmt.Errorf("correlation id does not match")
+func await(messages <-chan amqp.Delivery, requestId string, ctx context.Context) (*Response, error) {
+	log.Info("Awaiting response", "requestId", requestId)
+	for {
+
+		select {
+		case msg := <-messages:
+			log.Info("Received message", "requestId", requestId, "correlationId", msg.CorrelationId)
+			if msg.CorrelationId != requestId {
+				msg.Nack(false, true)
+				continue
+			}
+			msg.Ack(false)
+			var response Response
+			err := json.Unmarshal(msg.Body, &response)
+			if err != nil {
+				return nil, fmt.Errorf("failed parse response body: %s", err)
+			}
+			return &response, nil
+		case <-ctx.Done():
+			return nil, fmt.Errorf("timeout reached")
+		default:
+			log.Warn("No data")
 		}
-		msg.Ack(false)
-		var response Response
-		err := json.Unmarshal(msg.Body, &response)
-		if err != nil {
-			return nil, fmt.Errorf("failed parse response body: %s", err)
-		}
-		return &response, nil
-	case <-ctx.Done():
-		return nil, fmt.Errorf("timeout reached: %s", ctx.Err())
 	}
 }
