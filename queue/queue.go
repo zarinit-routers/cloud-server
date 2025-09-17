@@ -136,11 +136,11 @@ func SendRequest(r *Request) (*Response, error) {
 	go func(id *string) {
 		defer wg.Done()
 		for msg := range messages {
-			log.Info("Range message", "body", string(msg.Body), "requestId", id, "correlationId", msg.CorrelationId, "message", msg.Body, "requestId", id, "correlationId", msg.CorrelationId)
+			log.Info("Range message", "requestId", *id, "correlationId", msg.CorrelationId, "message", string(msg.Body))
 			if msg.CorrelationId != *id {
 				continue
 			}
-			log.Info("Received message", "requestId", id, "correlationId", msg.CorrelationId)
+			log.Info("Received message", "requestId", *id, "correlationId", msg.CorrelationId)
 
 			msg.Ack(false)
 
